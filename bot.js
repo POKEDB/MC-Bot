@@ -100,6 +100,11 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// Serve bot viewer page (e.g., /bot-view)
+app.get('/bot-view', (req, res) => {
+    res.sendFile(path.join(__dirname, 'bot-view.html'));  // Serve bot viewer page
+});
+
 server.listen(serverPort, () => {
     console.log(`Express server running on http://localhost:${serverPort}`);
 });
