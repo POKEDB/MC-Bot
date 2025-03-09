@@ -55,6 +55,12 @@ function createBot() {
     }
   });
 
+  global.bot._client.on("resource_pack_send", (data) => {
+    console.log("📦 Resource pack received.");
+    global.bot._client.write("resource_pack_receive", { hash: data.hash, result: 3 });
+    global.bot._client.write("resource_pack_receive", { hash: data.hash, result: 0 });
+  });
+
   global.bot.on("end", (reason) => {
     console.log(`⚠️ Bot disconnected: ${reason}. Reconnecting in 5s...`);
     setTimeout(createBot, 5000);
