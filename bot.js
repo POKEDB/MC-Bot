@@ -4,7 +4,6 @@ const express = require("express");
 const socketIo = require("socket.io");
 const path = require("path");
 const Vec3 = require('vec3');  // Import Vec3 for block positioning
-
 const app = express();
 const server = require("http").Server(app);
 
@@ -30,11 +29,9 @@ function createBot() {
 
     // Start the prismarine-viewer to view the bot's perspective
     mineflayerViewer(bot, {
-      port: 3007,
-      firstPerson: true,
-    }); // First-person view
-    console.log("Prismarine viewer started at http://localhost:3007");
-  });
+        port: process.env.PORT || 3007, // Use the Render port or default to 3007
+        firstPerson: true,
+      });
 
   bot.on("end", (reason) => {
     console.log(`Bot disconnected: ${reason}. Reconnecting...`);
@@ -109,5 +106,5 @@ app.get("/", (req, res) => {
 });
 
 server.listen(serverPort, () => {
-  console.log(`Express server running on http://localhost:${serverPort}`);
-});
+    console.log(`Express server running on http://localhost:${serverPort}`);
+  });
