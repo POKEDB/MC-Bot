@@ -3,54 +3,63 @@ const { mineflayer: mineflayerViewer } = require("prismarine-viewer");
 const express = require("express");
 const socketIo = require("socket.io");
 const path = require("path");
-const Vec3 = require('vec3');  // Import Vec3 for block positioning
+const Vec3 = require("vec3");
+
 const app = express();
 const server = require("http").Server(app);
+const serverPort = process.env.PORT || 3000; // Render assigns dynamic ports
 
-const serverPort = process.env.PORT || 3000; // Use Render's dynamic port or fallback to 3000
+// Initialize WebSocket server with CORS support
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 function createBot() {
   const bot = mineflayer.createBot({
-    host: "free2.eternalhosting.cloud", // Your server IP
-    port: 25616, // Your server port
-    username: "Shaunyyy", // Bot username
+    host: "free2.eternalhosting.cloud",
+    port: 25616,
+    username: "Shaunyyy",
   });
 
-  bot.on("spawn", () => {
-    console.log("Bot joined the server.");
+  bot.once("spawn", () => {
+    console.log("✅ Bot joined the server.");
 
-    // Anti-AFK: Randomized movement
+    // Attach the bot viewer to the same server (NO SEPARATE PORT)
+    mineflayerViewer(bot, { output: app, firstPerson: true });
+    console.log(`🎥 Bot viewer is running at /bot-view`);
+
+    // Anti-AFK: Randomized movement every 25 seconds
     setInterval(() => {
       const actions = ["jump", "sneak", "left", "right"];
       const action = actions[Math.floor(Math.random() * actions.length)];
       bot.setControlState(action, true);
       setTimeout(() => bot.setControlState(action, false), Math.random() * 1500 + 500);
-    }, 25000); // Every 25 seconds, performs a random action
+    }, 25000);
   });
 
   bot.on("end", (reason) => {
-    console.log(`Bot disconnected: ${reason}. Reconnecting...`);
-    setTimeout(createBot, 5000); // Create a new bot instance
+    console.log(`⚠️ Bot disconnected: ${reason}. Reconnecting...`);
+    setTimeout(createBot, 5000);
   });
 
   bot.on("kicked", (reason) => {
-    console.log(`Kicked: ${reason}. Rejoining...`);
+    console.log(`❌ Kicked: ${reason}. Rejoining...`);
     setTimeout(createBot, 5000);
   });
 
   bot.on("error", (err) => {
-    console.log(`Error: ${err}`);
+    console.log(`⚠️ Error: ${err}`);
   });
 
-  // Define the socket server after the server is created
-  const io = socketIo(server);
-
   io.on("connection", (socket) => {
-    console.log("Web client connected");
+    console.log("🔗 Web client connected");
 
     socket.on("move", (action) => {
-      console.log(`Received action: ${action}`);
-      
+      console.log(`🎮 Received action: ${action}`);
+
       switch (action) {
         case "jump":
           bot.setControlState("jump", true);
@@ -58,16 +67,14 @@ function createBot() {
           break;
         case "forward":
           bot.setControlState("forward", true);
-          setTimeout(() => bot.setControlState("forward", false), 500); // Move forward for 500ms
+          setTimeout(() => bot.setControlState("forward", false), 500);
           break;
         case "backward":
-          // Rotate bot 180 degrees and move forward (which is now the backward direction)
           bot.look(bot.entity.yaw + Math.PI, bot.entity.pitch, true, (err) => {
-            if (err) {
-              console.log("Error rotating bot:", err);
-            } else {
-              bot.setControlState("forward", true); // Move forward in the opposite direction
-              setTimeout(() => bot.setControlState("forward", false), 500); // Move for 500ms
+            if (err) console.log("⚠️ Error rotating bot:", err);
+            else {
+              bot.setControlState("forward", true);
+              setTimeout(() => bot.setControlState("forward", false), 500);
             }
           });
           break;
@@ -84,26 +91,28 @@ function createBot() {
           setTimeout(() => bot.setControlState("right", false), 500);
           break;
         default:
-          console.log("Unknown action");
+          console.log("⚠️ Unknown action");
       }
     });
   });
 }
 
-// Start the bot
 createBot();
 
-// Setup Express to serve the viewer at a public URL
+// Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
+// Control page
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.get('/bot-view', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'bot-view.html'));  // Serve bot-view.html from 'public' folder
-}); 
+// Redirect /bot-view to the same service (NO SEPARATE PORT)
+app.get("/bot-view", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "bot-view.html"));
+});
 
+// Start server
 server.listen(serverPort, () => {
-    console.log(`Express server running on http://localhost:${serverPort}`);
+  console.log(`🚀 Server running at http://localhost:${serverPort}`);
 });

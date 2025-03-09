@@ -23,7 +23,6 @@
     #viewer {
       width: 640px;
       height: 480px;
-      background-color: black;
       border: 2px solid #333;
       margin-top: 20px;
     }
@@ -49,7 +48,7 @@
 <body>
 
   <h1>Control Minecraft Bot</h1>
-  
+
   <!-- Minecraft Viewer -->
   <iframe id="viewer" src="/bot-view" frameborder="0"></iframe>
 
@@ -69,39 +68,36 @@
   <script>
     const socket = io();
 
-    // Handle keyboard controls
     document.addEventListener("keydown", (event) => {
       let action = null;
 
-      switch (event.key) {
+      switch (event.key.toLowerCase()) {
         case "w":
-          action = "forward"; // 'w' key to move forward
+          action = "forward";
           break;
         case "a":
-          action = "left"; // 'a' key to move left
+          action = "left";
           break;
         case "s":
-          action = "backward"; // 's' key to move backward
+          action = "backward";
           break;
         case "d":
-          action = "right"; // 'd' key to move right
+          action = "right";
           break;
-        case "Shift":
-          action = "sneak"; // shift key to sneak
+        case "shift":
+          action = "sneak";
           break;
         case " ":
-          action = "jump"; // spacebar to jump
+          action = "jump";
           break;
         default:
-          return; // Ignore other keys
+          return;
       }
 
       if (action) {
-        console.log(`Sending action: ${action}`);
         socket.emit("move", action);
       }
     });
-
   </script>
 
 </body>

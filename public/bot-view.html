@@ -4,20 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft Bot Viewer</title>
-    <script src="https://unpkg.com/prismarine-viewer@latest/dist/index.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+        }
+    </style>
 </head>
 <body>
-    <div id="viewer" style="width: 100vw; height: 100vh;"></div>
 
-    <script>
-        const mineflayer = require("mineflayer");
-        const viewer = prismarineViewer.createViewer({
-            port: process.env.PORT || 3007, // Use the Render port or default to 3007
-            firstPerson: true,
-        });
+    <!-- Embed the bot viewer (NOW ON SAME SERVICE) -->
+    <iframe src="/bot-view" allowfullscreen></iframe>
 
-        viewer.mount(document.getElementById('viewer'));
-    </script>
 </body>
 </html>
-
