@@ -16,59 +16,78 @@ const io = socketIo(server, {
   }
 });
 
+// ✅ Define bot-view route **outside** createBot()
+app.get("/bot-view", (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Minecraft Bot Viewer</title>
+      <script src="https://unpkg.com/prismarine-viewer@latest/dist/index.js"></script>
+    </head>
+    <body style="margin: 0; overflow: hidden;">
+      <div id="viewer" style="width: 100vw; height: 100vh;"></div>
+      <script>
+        // Wait for the bot to be ready
+        window.onload = () => {
+          fetch("/viewer-data") // Check if viewer is available
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                const viewer = prismarineViewer.createViewer({
+                  viewDistance: 6
+                });
+
+                viewer.mount(document.getElementById('viewer'));
+                viewer.listen();
+                console.log("✅ Viewer initialized successfully");
+              } else {
+                console.error("❌ Viewer initialization failed:", data.error);
+              }
+            })
+            .catch(err => console.error("❌ Failed to fetch viewer data:", err));
+        };
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+// ✅ Define viewer-data route **outside** createBot()
+app.get("/viewer-data", (req, res) => {
+  if (global.bot) {
+    res.json({ success: true });
+  } else {
+    res.json({ success: false, error: "Bot is not active" });
+  }
+});
+
 function createBot() {
-  const bot = mineflayer.createBot({
+  global.bot = mineflayer.createBot({
     host: "free2.eternalhosting.cloud",
     port: 25616,
     username: "Shaunyyy",
   });
 
-  bot.once("spawn", () => {
+  global.bot.once("spawn", () => {
     console.log("✅ Bot joined the server.");
-
-    // Serve Prismarine Viewer manually at "/bot-view"
-    app.get("/bot-view", (req, res) => {
-      res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Minecraft Bot Viewer</title>
-          <script src="https://unpkg.com/prismarine-viewer@latest/dist/index.js"></script>
-        </head>
-        <body style="margin: 0; overflow: hidden;">
-          <div id="viewer" style="width: 100vw; height: 100vh;"></div>
-          <script>
-            const viewer = prismarineViewer.createViewer({
-              viewDistance: 6
-            });
-            viewer.mount(document.getElementById('viewer'));
-            fetch('/ws') // Connect to WebSocket on the same Render service
-              .then(() => viewer.listen())
-              .catch(err => console.error("WebSocket Error:", err));
-          </script>
-        </body>
-        </html>
-      `);
-    });
-
-    mineflayerViewer(bot, { output: server, firstPerson: true });
-
+    mineflayerViewer(global.bot, { output: server, firstPerson: true });
     console.log("🎥 Bot viewer is now accessible at /bot-view");
   });
 
-  bot.on("end", (reason) => {
+  global.bot.on("end", (reason) => {
     console.log(`⚠️ Bot disconnected: ${reason}. Reconnecting...`);
     setTimeout(createBot, 5000);
   });
 
-  bot.on("kicked", (reason) => {
+  global.bot.on("kicked", (reason) => {
     console.log(`❌ Kicked: ${reason}. Rejoining...`);
     setTimeout(createBot, 5000);
   });
 
-  bot.on("error", (err) => {
+  global.bot.on("error", (err) => {
     console.log(`⚠️ Error: ${err}`);
   });
 
@@ -80,33 +99,28 @@ function createBot() {
 
       switch (action) {
         case "jump":
-          bot.setControlState("jump", true);
-          setTimeout(() => bot.setControlState("jump", false), 500);
+          global.bot.setControlState("jump", true);
+          setTimeout(() => global.bot.setControlState("jump", false), 500);
           break;
         case "forward":
-          bot.setControlState("forward", true);
-          setTimeout(() => bot.setControlState("forward", false), 500);
+          global.bot.setControlState("forward", true);
+          setTimeout(() => global.bot.setControlState("forward", false), 500);
           break;
         case "backward":
-          bot.look(bot.entity.yaw + Math.PI, bot.entity.pitch, true, (err) => {
-            if (err) console.log("⚠️ Error rotating bot:", err);
-            else {
-              bot.setControlState("forward", true);
-              setTimeout(() => bot.setControlState("forward", false), 500);
-            }
-          });
+          global.bot.setControlState("back", true);
+          setTimeout(() => global.bot.setControlState("back", false), 500);
           break;
         case "sneak":
-          bot.setControlState("sneak", true);
-          setTimeout(() => bot.setControlState("sneak", false), 500);
+          global.bot.setControlState("sneak", true);
+          setTimeout(() => global.bot.setControlState("sneak", false), 500);
           break;
         case "left":
-          bot.setControlState("left", true);
-          setTimeout(() => bot.setControlState("left", false), 500);
+          global.bot.setControlState("left", true);
+          setTimeout(() => global.bot.setControlState("left", false), 500);
           break;
         case "right":
-          bot.setControlState("right", true);
-          setTimeout(() => bot.setControlState("right", false), 500);
+          global.bot.setControlState("right", true);
+          setTimeout(() => global.bot.setControlState("right", false), 500);
           break;
         default:
           console.log("⚠️ Unknown action");
@@ -117,13 +131,8 @@ function createBot() {
 
 createBot();
 
-// Serve static files (index.html and CSS)
-app.use(express.static(path.join(__dirname, "public")));
-
-// Control page
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
+// ✅ Only one static file handler
+app.use(express.static("public", { extensions: ["html"] }));
 
 // Start the server
 server.listen(serverPort, () => {
