@@ -7,7 +7,7 @@ const Vec3 = require("vec3");
 
 const app = express();
 const server = require("http").Server(app);
-const serverPort = process.env.PORT || 3000; // Render assigns dynamic ports
+const serverPort = process.env.PORT || 3000; // Render assigns a dynamic port
 
 // Initialize WebSocket server with CORS support
 const io = socketIo(server, {
@@ -27,9 +27,9 @@ function createBot() {
   bot.once("spawn", () => {
     console.log("✅ Bot joined the server.");
 
-    // Attach the bot viewer to the same server (NO SEPARATE PORT)
+    // Serve Prismarine Viewer directly from Express
     mineflayerViewer(bot, { output: app, firstPerson: true });
-    console.log(`🎥 Bot viewer is running at /bot-view`);
+    console.log("🎥 Bot viewer is now accessible at /bot-view");
 
     // Anti-AFK: Randomized movement every 25 seconds
     setInterval(() => {
@@ -105,11 +105,6 @@ app.use(express.static(path.join(__dirname, "public")));
 // Control page
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// Redirect /bot-view to the same service (NO SEPARATE PORT)
-app.get("/bot-view", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "bot-view.html"));
 });
 
 // Start server
