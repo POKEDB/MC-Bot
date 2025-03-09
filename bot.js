@@ -29,9 +29,10 @@ function createBot() {
 
     // Start the prismarine-viewer to view the bot's perspective
     mineflayerViewer(bot, {
-        port: process.env.PORT || 3007, // Use the Render port or default to 3007
-        firstPerson: true,
-      });
+      port: process.env.PORT || 3007, // Use the Render port or default to 3007
+      firstPerson: true,
+    });
+  });
 
   bot.on("end", (reason) => {
     console.log(`Bot disconnected: ${reason}. Reconnecting...`);
@@ -107,4 +108,4 @@ app.get("/", (req, res) => {
 
 server.listen(serverPort, () => {
     console.log(`Express server running on http://localhost:${serverPort}`);
-  });
+});
