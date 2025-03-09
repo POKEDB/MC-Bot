@@ -26,11 +26,6 @@ function createBot() {
       bot.setControlState(action, true);
       setTimeout(() => bot.setControlState(action, false), Math.random() * 1500 + 500);
     }, 25000); // Every 25 seconds, performs a random action
-
-    mineflayerViewer(bot, {
-        port: 3001, // Change to a different port if 10000 is taken
-        firstPerson: true,
-     });
   });
 
   bot.on("end", (reason) => {
