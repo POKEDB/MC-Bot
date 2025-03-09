@@ -11,12 +11,10 @@
 
     <script>
         const mineflayer = require("mineflayer");
-        const { mineflayer: mineflayerViewer } = require("prismarine-viewer");
-            
-        mineflayerViewer(bot, {
+        const viewer = prismarineViewer.createViewer({
             port: process.env.PORT || 3007, // Use the Render port or default to 3007
             firstPerson: true,
-       });
+        });
 
         viewer.mount(document.getElementById('viewer'));
     </script>
