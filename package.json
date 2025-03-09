@@ -1,10 +1,9 @@
 {
   "name": "bot",
   "version": "1.0.0",
-  "description": "Mineflayer bot with Prismarine Viewer and Express",
-  "main": "bot.js", 
+  "description": "Hellooooooo",
+  "main": "bot.js",
   "scripts": {
-    "start": "node bot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -18,8 +17,5 @@
     "prismarine-viewer": "^1.33.0",
     "socket.io": "^4.8.1",
     "vec3": "^0.1.10"
-  },
-  "engines": {
-    "node": "16.x" 
   }
 }
