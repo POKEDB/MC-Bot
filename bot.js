@@ -26,17 +26,36 @@ function createBot() {
   bot.once("spawn", () => {
     console.log("✅ Bot joined the server.");
 
-    // Serve Prismarine Viewer correctly
-    mineflayerViewer(bot, { output: server, firstPerson: true });
-    console.log("🎥 Bot viewer is now accessible at /");
+    // Serve Prismarine Viewer manually at "/bot-view"
+    app.get("/bot-view", (req, res) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Minecraft Bot Viewer</title>
+          <script src="https://unpkg.com/prismarine-viewer@latest/dist/index.js"></script>
+        </head>
+        <body style="margin: 0; overflow: hidden;">
+          <div id="viewer" style="width: 100vw; height: 100vh;"></div>
+          <script>
+            const viewer = prismarineViewer.createViewer({
+              viewDistance: 6
+            });
+            viewer.mount(document.getElementById('viewer'));
+            fetch('/ws') // Connect to WebSocket on the same Render service
+              .then(() => viewer.listen())
+              .catch(err => console.error("WebSocket Error:", err));
+          </script>
+        </body>
+        </html>
+      `);
+    });
 
-    // Anti-AFK: Randomized movement every 25 seconds
-    setInterval(() => {
-      const actions = ["jump", "sneak", "left", "right"];
-      const action = actions[Math.floor(Math.random() * actions.length)];
-      bot.setControlState(action, true);
-      setTimeout(() => bot.setControlState(action, false), Math.random() * 1500 + 500);
-    }, 25000);
+    mineflayerViewer(bot, { output: server, firstPerson: true });
+
+    console.log("🎥 Bot viewer is now accessible at /bot-view");
   });
 
   bot.on("end", (reason) => {
