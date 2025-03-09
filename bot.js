@@ -27,11 +27,10 @@ function createBot() {
       setTimeout(() => bot.setControlState(action, false), Math.random() * 1500 + 500);
     }, 25000); // Every 25 seconds, performs a random action
 
-    // Start the prismarine-viewer to view the bot's perspective
     mineflayerViewer(bot, {
-      port: process.env.PORT || 3007, // Use the Render port or default to 3007
-      firstPerson: true,
-    });
+        port: 3001, // Change to a different port if 10000 is taken
+        firstPerson: true,
+     });
   });
 
   bot.on("end", (reason) => {
