@@ -3,7 +3,6 @@ const { mineflayer: mineflayerViewer } = require("prismarine-viewer");
 const express = require("express");
 const socketIo = require("socket.io");
 const path = require("path");
-const Vec3 = require("vec3");
 
 const app = express();
 const server = require("http").Server(app);
@@ -27,9 +26,9 @@ function createBot() {
   bot.once("spawn", () => {
     console.log("✅ Bot joined the server.");
 
-    // Serve Prismarine Viewer directly from Express
-    mineflayerViewer(bot, { output: app, firstPerson: true });
-    console.log("🎥 Bot viewer is now accessible at /bot-view");
+    // Serve Prismarine Viewer correctly
+    mineflayerViewer(bot, { output: server, firstPerson: true });
+    console.log("🎥 Bot viewer is now accessible at /");
 
     // Anti-AFK: Randomized movement every 25 seconds
     setInterval(() => {
@@ -99,7 +98,7 @@ function createBot() {
 
 createBot();
 
-// Serve static files
+// Serve static files (index.html and CSS)
 app.use(express.static(path.join(__dirname, "public")));
 
 // Control page
@@ -107,7 +106,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Start server
+// Start the server
 server.listen(serverPort, () => {
   console.log(`🚀 Server running at http://localhost:${serverPort}`);
 });
