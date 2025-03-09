@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft Bot Viewer</title>
-    <script src="https://cdn.jsdelivr.net/npm/prismarine-viewer@2.2.0/dist/index.js"></script>
+    <script src="https://unpkg.com/prismarine-viewer@latest/dist/index.js"></script>
 </head>
 <body>
-    <div id="viewer"></div>
+    <div id="viewer" style="width: 100vw; height: 100vh;"></div>
 
     <script>
         const viewer = prismarineViewer.createViewer({
-            firstPerson: true,  // This configures the viewer to use first-person perspective
+            firstPerson: true,  // Enables first-person view
         });
 
         viewer.mount(document.getElementById('viewer'));
     </script>
 </body>
 </html>
+
