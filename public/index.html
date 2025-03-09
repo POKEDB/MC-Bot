@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Minecraft Bot</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #viewer {
+      width: 640px;
+      height: 480px;
+      background-color: black;
+      border: 2px solid #333;
+      margin-top: 20px;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    ul li {
+      margin: 5px 0;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Control Minecraft Bot</h1>
+  
+  <!-- Minecraft Viewer -->
+  <iframe id="viewer" src="http://localhost:3007" frameborder="0"></iframe>
+
+  <div class="controls">
+    <p>Use the following keys to control the bot:</p>
+    <ul>
+      <li>W - Move Forward</li>
+      <li>A - Move Left</li>
+      <li>S - Move Backward</li>
+      <li>D - Move Right</li>
+      <li>Shift - Sneak</li>
+      <li>Space - Jump</li>
+    </ul>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    // Handle keyboard controls
+    document.addEventListener("keydown", (event) => {
+      let action = null;
+
+      switch (event.key) {
+        case "w":
+          action = "forward"; // 'w' key to move forward
+          break;
+        case "a":
+          action = "left"; // 'a' key to move left
+          break;
+        case "s":
+          action = "backward"; // 's' key to move backward
+          break;
+        case "d":
+          action = "right"; // 'd' key to move right
+          break;
+        case "Shift":
+          action = "sneak"; // shift key to sneak
+          break;
+        case " ":
+          action = "jump"; // spacebar to jump
+          break;
+        default:
+          return; // Ignore other keys
+      }
+
+      if (action) {
+        console.log(`Sending action: ${action}`);
+        socket.emit("move", action);
+      }
+    });
+
+  </script>
+
+</body>
+</html>
