@@ -1,1 +1,267 @@
-hi
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Minecraft Bot Controller</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+            .container {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                padding: 20px;
+            }
+            .form-group {
+                margin-bottom: 10px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+            }
+            input {
+                padding: 8px;
+                width: 100%;
+            }
+            button {
+                padding: 10px 15px;
+                background-color: #4caf50;
+                color: white;
+                border: none;
+                cursor: pointer;
+                margin-right: 5px;
+                margin-bottom: 5px;
+            }
+            button:hover {
+                background-color: #45a049;
+            }
+            .status {
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+            }
+            .connected {
+                background-color: #d4edda;
+                color: #155724;
+            }
+            .disconnected {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
+            .connecting {
+                background-color: #fff3cd;
+                color: #856404;
+            }
+            .viewer-container {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                margin-top: 20px;
+            }
+            .viewer-frame {
+                flex: 1;
+                min-height: 400px;
+                border: none;
+                background-color: #eee;
+                border-radius: 5px;
+            }
+            .control-info {
+                background-color: #e9ecef;
+                padding: 10px;
+                margin-top: 10px;
+                border-radius: 5px;
+            }
+            .key {
+                display: inline-block;
+                padding: 5px 10px;
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 3px;
+                margin: 0 5px;
+                font-family: monospace;
+            }
+            .main-content {
+                display: flex;
+                flex: 1;
+                flex-direction: column;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Minecraft Bot Controller</h1>
+
+            <div id="statusBox" class="status disconnected">
+                Bot status: Disconnected
+            </div>
+
+            <div class="server-form">
+                <h2>Connect to Server</h2>
+                <div class="form-group">
+                    <label for="serverHost">Server Host:</label>
+                    <input
+                        type="text"
+                        id="serverHost"
+                        value="free2.eternalhosting.cloud"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="serverPort">Server Port:</label>
+                    <input type="number" id="serverPort" value="25616" />
+                </div>
+                <div class="form-group">
+                    <label for="username">Bot Username:</label>
+                    <input type="text" id="username" value="Shaunyyy" />
+                </div>
+                <div class="form-group">
+                    <label for="version">Minecraft Version:</label>
+                    <input type="text" id="version" value="1.21.4" />
+                </div>
+                <button id="connectBtn">Connect Bot</button>
+            </div>
+
+            <div
+                id="viewerContainer"
+                class="viewer-container"
+                style="display: none"
+            >
+                <h2>Bot POV & Controls</h2>
+                <div class="main-content">
+                    <iframe
+                        id="viewerFrame"
+                        class="viewer-frame"
+                        src="about:blank"
+                    ></iframe>
+                    <div class="control-info">
+                        <p>
+                            <strong>Keyboard Controls:</strong> Use
+                            <span class="key">W</span> (forward),
+                            <span class="key">A</span> (left),
+                            <span class="key">S</span> (backward),
+                            <span class="key">D</span> (right),
+                            <span class="key">Space</span> (jump) to control the
+                            bot. Press <span class="key">X</span> to stop all
+                            movement.
+                        </p>
+                        <p>
+                            <small
+                                >Note: Click on the viewer above to enable
+                                keyboard controls.</small
+                            >
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            const socket = io();
+
+            // UI Elements
+            const statusBox = document.getElementById("statusBox");
+            const connectBtn = document.getElementById("connectBtn");
+            const viewerContainer = document.getElementById("viewerContainer");
+            const viewerFrame = document.getElementById("viewerFrame");
+
+            // Connect to server
+            connectBtn.addEventListener("click", () => {
+                const serverDetails = {
+                    host: document.getElementById("serverHost").value,
+                    port: parseInt(document.getElementById("serverPort").value),
+                    username: document.getElementById("username").value,
+                    version: document.getElementById("version").value,
+                };
+
+                socket.emit("createBot", serverDetails);
+                updateStatus("connecting", "Connecting to server...");
+            });
+
+            // Keyboard controls
+            document.addEventListener("keydown", (e) => {
+                // Only process keyboard inputs if the bot is connected and viewer is active
+                if (viewerContainer.style.display === "none") return;
+
+                // Don't process keyboard events if an input field is focused
+                if (document.activeElement.tagName === "INPUT") return;
+
+                switch (e.key.toLowerCase()) {
+                    case "w":
+                        socket.emit("moveBot", "forward");
+                        break;
+                    case "a":
+                        socket.emit("moveBot", "left");
+                        break;
+                    case "s":
+                        socket.emit("moveBot", "backward");
+                        break;
+                    case "d":
+                        socket.emit("moveBot", "right");
+                        break;
+                    case " ":
+                        socket.emit("moveBot", "jump");
+                        break;
+                    case "x":
+                        socket.emit("moveBot", "stop");
+                        break;
+                }
+            });
+            
+            // Add keyup event to stop movement when keys are released
+            document.addEventListener("keyup", (e) => {
+                // Only process keyboard inputs if the bot is connected and viewer is active
+                if (viewerContainer.style.display === "none") return;
+                
+                // Don't process keyboard events if an input field is focused
+                if (document.activeElement.tagName === "INPUT") return;
+                
+                switch (e.key.toLowerCase()) {
+                    case "w":
+                        socket.emit("stopMovement", "forward");
+                        break;
+                    case "a":
+                        socket.emit("stopMovement", "left");
+                        break;
+                    case "s":
+                        socket.emit("stopMovement", "backward");
+                        break;
+                    case "d":
+                        socket.emit("stopMovement", "right");
+                        break;
+                    case " ":
+                        socket.emit("stopMovement", "jump");
+                        break;
+                }
+            });
+
+            // Socket events
+            socket.on("botStatus", (data) => {
+                updateStatus(data.status, data.message);
+
+                if (data.status === "connected") {
+                    viewerContainer.style.display = "flex";
+                    // Set the iframe src to the bot viewer
+                    viewerFrame.src = `${window.location.protocol}//${window.location.hostname}:3000`;
+                } else if (
+                    data.status === "disconnected" ||
+                    data.status === "error"
+                ) {
+                    viewerContainer.style.display = "none";
+                    viewerFrame.src = "about:blank";
+                }
+            });
+
+            function updateStatus(status, message) {
+                statusBox.className = `status ${status}`;
+                statusBox.textContent = `Bot status: ${message}`;
+            }
+        </script>
+    </body>
+</html>
