@@ -248,7 +248,7 @@
                 if (data.status === "connected") {
                     viewerContainer.style.display = "flex";
                     // Set the iframe src to the bot viewer
-                    viewerFrame.src = `http://${window.location.hostname}:${serverPort}`;
+                    viewerFrame.src = `${window.location.origin}`;
                 } else if (
                     data.status === "disconnected" ||
                     data.status === "error"
