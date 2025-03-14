@@ -435,15 +435,18 @@ function createMinecraftBot(options = {}) {
     botInstances.delete(botIp); // Remove from map on error
   });
 
-  bot.on("end", () => {
-    console.log(`Bot disconnected from ${botIp}`);
-    io.emit("botStatus", {
-      status: "disconnected",
-      message: `Bot disconnected from ${botIp}`,
-    });
-    botInstances.delete(botIp); // Remove from map when bot disconnects
-  });
+socket.on("botStatus", (data) => {
+    updateStatus(data.status, data.message);
 
+    if (data.status === "connected") {
+        viewerContainer.style.display = "flex";
+        // ✅ Correctly load the bot viewer (POV)
+        viewerFrame.src = `${window.location.origin}`;
+    } else if (data.status === "disconnected" || data.status === "error") {
+        viewerContainer.style.display = "none";
+        viewerFrame.src = "about:blank";
+    }
+});
   return bot;
 }
 
